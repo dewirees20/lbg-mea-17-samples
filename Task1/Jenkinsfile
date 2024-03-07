@@ -11,7 +11,7 @@ pipeline {
         stage("Build and Push") {
             steps {
                 echo "Building..."
-                sh "docker build -t $DOCKER_USER/task1-app -f Dockerfile"
+                sh "docker build -t $DOCKER_USER/task1-app -f Dockerfile ."
                 sh "docker push $DOCKER_USER/task1-app"
                 echo "Build Complete"
             }
