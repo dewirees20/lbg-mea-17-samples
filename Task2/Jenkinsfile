@@ -2,7 +2,7 @@ pipeline {
 
     agent any
 
-    env {
+    environment {
         DOCKER_USER="dwr6"
         MYSQL_ROOT_PASSWORD="password123"
     }
@@ -29,7 +29,7 @@ pipeline {
                 sh "docker network create task2"
                 sh "docker run -d --network task2 --name mysql --env MYSQL_ROOT_PASSWORD $DOCKER_USER/task2-db"
                 sh "docker run -d --network task2 --name flask-app --env MYSQL_ROOT_PASSWORD $DOCKER_USER/task2-app"
-                sh "docker run -d --network task2 --name nginx -p 80:80 --mount type=bind,source=\$(pwd)/nginx/nginx.conf,target=/etc/nginx/nginx.conf nginx:latest"
+                sh "docker run -d --network task2 --name nginx -p 80:80 --mount type=bind,source=\$(pwd)/Task2/nginx/nginx.conf,target=/etc/nginx/nginx.conf nginx:latest"
             }
         }
     }
