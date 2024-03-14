@@ -39,10 +39,10 @@ pipeline {
     post {
         always {
             sh "docker system prune -f"
-            sh "kubectl config set account null"
+            sh "gcloud config set account null"
         }
         failure {
-            sh "gcloud delete ns task1"
+            sh "kubectl delete ns task1"
         }
     }
 }
