@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: flask-app
+  name: app-deployment
+spec:
+  strategy:
+    rollingUpdate:
+      maxSurge: 33%
+      maxUnavailable: 33%
+  selector:
+    matchLabels:
+      run: flask-app
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        run: flask-app
+    spec:
+      containers:
+      - image: eu.gcr.io/lbg-mea-17/dwr-task1:v1
+        imagePullPolicy: IfNotPresent
+        name: flask-app
+        env:
+        - name: YOUR_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: YOUR_NAME
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: flask-app
+  name: flask-app
+spec:
+  ports:
+  - port: 5500
+    protocol: TCP
+    targetPort: 5500
+  selector:
+    run: flask-app
+  type: ClusterIP
