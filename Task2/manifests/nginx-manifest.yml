@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: nginx
+  name: nginx-pod
+spec:
+  containers:
+  - image: nginx:latest
+    name: nginx-container
+    volumeMounts:
+    - name: nginx-vol
+      mountPath: /etc/nginx
+  volumes:
+  - name: nginx-vol
+    configMap:
+      name: task2-nginx-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: nginx
+  name: nginx-service
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    run: nginx
+  type: LoadBalancer

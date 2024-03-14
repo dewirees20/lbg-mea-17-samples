@@ -1,44 +1,45 @@
 pipeline {
-
     agent any
-
     environment {
-        DOCKER_USER="dwr6"
-        NETWORK_NAME="task1"
+        REGISTRY = "eu.gcr.io/lbg-mea-17"
+        VERSION = "v2"
+        YOUR_NAME = "JenkinsKubernetes"
     }
-
     stages {
-        stage("Build and Push") {
+        stage('Build') {
             steps {
-                echo "Building..."
-                sh "docker build -t $DOCKER_USER/task1-app \$(pwd)/Task1"
-                sh "docker push $DOCKER_USER/task1-app"
-                echo "Build Complete"
+                sh "docker build -t $REGISTRY/task1-app:$VERSION Task1"
             }
         }
-
-        stage("Test") {
+        stage('Test') {
             steps {
-                echo "Testing..."
-                sh "sleep 3"
-                echo "Tests Passed"
+                sh "echo Testing..."
+                sh "sleep 5"
+                sh "echo PASSED"
             }
         }
-
-        stage("Deploy") {
+        stage('Push') {
             steps {
-                sh "docker stop \$(docker ps -q) || sleep 1"
-                sh "docker rm \$(docker ps -qa) || sleep 1"
-                sh "docker network inspect $NETWORK_NAME && sleep 1 || docker network create $NETWORK_NAME"
-                sh "docker run -d --network $NETWORK_NAME --name flask-app $DOCKER_USER/task1-app"
-                sh "docker run -d --network $NETWORK_NAME --name nginx -p 80:80 --mount type=bind,source=\$(pwd)/Task1/nginx.conf,target=/etc/nginx/nginx.conf nginx:latest"
+                sh "gcloud config set account agray-container-registry@lbg-mea-17.iam.gserviceaccount.com"
+                sh "docker push $REGISTRY/task1-app:$VERSION"
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh "gcloud config set account jenkins-k8s@lbg-mea-17.iam.gserviceaccount.com"
+                sh "kubectl create ns task1 || true"
+                sh "sed -e 's,{{YOUR_NAME}},'$YOUR_NAME',g;' Task1/app-config.yml | tee Task1/app-config.yaml"
+                sh "rm Task1/app-config.yml"
+                sh "kubectl apply -f Task1 --namespace task1"
+                sh "sleep 60"
+                sh "kubectl get services --namespace task1"
             }
         }
     }
-
     post {
         always {
             sh "docker system prune -f"
+            sh "gcloud config set account null"
         }
-    }   
+    }
 }

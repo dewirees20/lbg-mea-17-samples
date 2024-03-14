@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: flask
+  name: task2-deploy
+spec:
+  selector:
+    matchLabels:
+      run: flask
+  replicas: 3
+  strategy:
+    rollingUpdate:
+      maxSurge: 33%
+      maxUnavailable: 33%
+  template:
+    metadata:
+      labels:
+        run: flask
+    spec:
+      containers:
+      - image: eu.gcr.io/lbg-mea-17/task2-app:v2
+        name: flask-container
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-creds
+              key: MYSQL_ROOT_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: flask
+  name: flask-app
+spec:
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: TCP
+  selector:
+    run: flask
+  type: ClusterIP
